@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const router = require('./routes/index');
+const errorHandler = require('./middlwares/error');
 
 const app = express();
 
@@ -15,5 +16,7 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 
 app.use(router);
+
+app.use(errorHandler);
 
 app.listen(3000);

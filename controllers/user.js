@@ -2,24 +2,43 @@ const bcrypt = require('bcrypt');
 const jsonWebToken = require('jsonwebtoken');
 const User = require('../models/user');
 
-const getUser = (req, res) => {
+const BadRequestError = require('../errors/BadRequestError');
+const ConflictingRequestError = require('../errors/ConflictingRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
+
+const getUser = (req, res, next) => {
   User.findById(req.user._id)
+    .orFail(new NotFoundError('Пользователь с данным id не найден'))
     .then((user) => res.send(user))
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Переданы некорректные данные при поиске _id'));
+      } else {
+        next(err);
+      }
+    });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { email, name } = req.body;
 
   User.findByIdAndUpdate(
     req.user._id,
     { email, name },
     { new: true, runValidators: true },
-  ).then((user) => res.send(user))
-    .catch((err) => console.log(err));
+  ).orFail(new NotFoundError('Пользователь с указанным id не найден'))
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при обновлении данных профиля'));
+      } else {
+        next(err);
+      }
+    });
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { password } = req.body;
   bcrypt.hash(String(password), 10)
     .then((hashedPassword) => User.create({ ...req.body, password: hashedPassword }))
@@ -27,13 +46,22 @@ const createUser = (req, res) => {
       const { email, name } = user;
       res.status(201).send({ email, name });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+      } else if (err.code === 11000) {
+        next(new ConflictingRequestError('Пользователь с таким email уже существует'));
+      } else {
+        next(err);
+      }
+    });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   User.findOne({ email })
     .select('+password')
+    .orFail(new UnauthorizedError('Неправильный логин или пароль'))
     .then((user) => {
       bcrypt.compare(String(password), user.password)
         .then((isValidUser) => {
@@ -51,12 +79,21 @@ const login = (req, res) => {
             const { _id, name } = user;
             res.send({ _id, email, name });
           } else {
-            console.log('неправильный пароль');
+            throw new UnauthorizedError('Неправльный логин или пароль');
           }
         })
-        .catch((err) => console.log(err));
+        .catch(next);
     })
-    .catch((err) => console.log(err));
+    .catch(next);
+};
+
+const signOutUser = (req, res) => {
+  if (req.cookies.jwt) {
+    res.clearCookie('jwt');
+    res.status(200).send({ message: 'Куки удалены' });
+  } else {
+    throw new UnauthorizedError('Пользователь не авторизован');
+  }
 };
 
 module.exports = {
@@ -64,4 +101,5 @@ module.exports = {
   createUser,
   login,
   updateUser,
+  signOutUser,
 };
