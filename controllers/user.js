@@ -7,6 +7,10 @@ const ConflictingRequestError = require('../errors/ConflictingRequestError');
 const NotFoundError = require('../errors/NotFoundError');
 const UnauthorizedError = require('../errors/UnauthorizedError');
 
+const { DEV_JWT_SECRET } = require('../utils/config');
+
+const { NODE_ENV, JWT_SECRET } = process.env;
+
 const getUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(new NotFoundError('Пользователь с данным id не найден'))
@@ -68,7 +72,7 @@ const login = (req, res, next) => {
           if (isValidUser) {
             const jwt = jsonWebToken.sign({
               _id: user._id,
-            }, 'SUPER');
+            }, NODE_ENV === 'production' ? JWT_SECRET : DEV_JWT_SECRET);
 
             res.cookie('jwt', jwt, {
               maxAge: 3600 * 24 * 7,

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { regexLink } = require('../utils/constants');
 
 const movieSchema = new mongoose.Schema({
   country: {
@@ -24,14 +25,26 @@ const movieSchema = new mongoose.Schema({
   image: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => regexLink.test(v),
+      message: 'Неправильный формат ссылки к постеру фильма',
+    },
   },
   trailerLink: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => regexLink.test(v),
+      message: 'Неправильный формат ссылки на трейлер фильма',
+    },
   },
   thumbnail: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => regexLink.test(v),
+      message: 'Неправильный формат ссылки к миниатюрному изображению постера фильма',
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
