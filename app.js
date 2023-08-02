@@ -13,7 +13,7 @@ const { limiter } = require('./middlwares/rateLimiter');
 
 const app = express();
 
-app.use(cors({ origin: ['http://localhost:3000'], credentials: true, maxAge: 360000 }));
+app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001'], credentials: true, maxAge: 360000 }));
 
 mongoose.connect(process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI : DEV_MONGODB_URI, {
   useNewUrlParser: true,

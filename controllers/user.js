@@ -79,7 +79,8 @@ const login = (req, res, next) => {
             res.cookie('jwt', jwt, {
               maxAge: 3600 * 24 * 7,
               httpOnly: true,
-              sameSite: true,
+              sameSite: 'none',
+              secure: true,
             });
 
             const { _id, name } = user;
