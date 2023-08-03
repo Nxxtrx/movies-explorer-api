@@ -80,7 +80,7 @@ const login = (req, res, next) => {
               maxAge: 3600 * 24 * 7,
               httpOnly: true,
               sameSite: 'none',
-              security: true,
+              secure: true,
             });
 
             const { _id, name } = user;
