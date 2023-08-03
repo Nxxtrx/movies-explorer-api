@@ -81,7 +81,6 @@ const login = (req, res, next) => {
               httpOnly: true,
               sameSite: 'none',
               secure: true,
-              domain: '.nxxtrx.nomoreparties.co',
             });
 
             const { _id, name } = user;
