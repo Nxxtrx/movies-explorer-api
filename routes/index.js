@@ -6,14 +6,14 @@ const { auth } = require('../middlwares/auth');
 const celebrate = require('../middlwares/celebrate');
 const NotFoundError = require('../errors/NotFoundError');
 
-router.post('/signup', celebrate.validateCreateUser, createUser);
-router.post('/signin', celebrate.validateLoginUser, login);
+router.post('/api/signup', celebrate.validateCreateUser, createUser);
+router.post('/api/signin', celebrate.validateLoginUser, login);
 
 router.use(auth);
 
-router.use('/users', userRoutes);
-router.use('/movies', movieRoutes);
-router.post('/signout', signOutUser);
+router.use('/api/users', userRoutes);
+router.use('/api/movies', movieRoutes);
+router.post('/api/signout', signOutUser);
 
 router.use('/*', (req, res, next) => {
   next(new NotFoundError('Страница не найдена'));
